@@ -18,12 +18,10 @@ class medeos : public eosio::contract {
       void regdoctor(account_name account, const string& name, const string& hospital, const string& speciality) {
         require_auth(account);
         
-        auto acct_idx = doctors.template get_index<N(account)>();
-        eosio_assert( acct_idx.find(account) == acct_idx.end(), "account already registered as a doctor" );
+        eosio_assert( doctors.find(account) == doctors.end(), "account already registered as a doctor" );
 
         //TODO: validate name is not already been used
         doctors.emplace(account, [&](auto& d) {
-          d.id       = doctors.available_primary_key();
           d.account  = account;
           d.name     = name;
           d.hospital = hospital;
@@ -33,10 +31,10 @@ class medeos : public eosio::contract {
       }
 
       //@abi action
-      void approvedoc(uint64_t docid) {
+      void approvedoc(account_name doc) {
         require_auth(_self);
         
-        auto doc_itr = doctors.find(docid);
+        auto doc_itr = doctors.find(doc);
         eosio_assert( doc_itr != doctors.end(), "doctor not found!");
         doctors.modify( doc_itr, 0, [&]( auto& doc ) {
           doc.approved = 1;
@@ -44,19 +42,23 @@ class medeos : public eosio::contract {
       }
 
       //@abi action 
-      void addrecord(uint64_t docid, public_key rid, string data) {
+      void addrecord(account_name doc, public_key rid, string data) {
 
-        auto doc_itr = doctors.find(docid);
+        auto doc_itr = doctors.find(doc);
         eosio_assert( doc_itr != doctors.end() && doc_itr->approved != 0, "doctor not found!");
 
         require_auth(doc_itr->account);
 
+        auto rid_idx = records.template get_index<N(rid)>();
+        auto ritr = rid_idx.find( record::get_key256_from_pubkey(rid) );
+        eosio_assert( ritr == rid_idx.end(), "record pubkey already used" );
+
         records.emplace(_self, [&](auto& r) {
-          r.id         = doctors.available_primary_key();
+          r.id         = records.available_primary_key();
           r.doctor     = doc_itr->account;
           r.data       = data;
           r.rid        = rid;
-          r.created_at = time();
+          r.created_at = current_time();
         });
       }
 
@@ -78,22 +80,18 @@ class medeos : public eosio::contract {
 
       //@abi table doctor i64
       struct doctor {
-        uint64_t     id;
         account_name account;
         string       name;
         string       hospital;
         string       speciality;
         uint64_t     approved = 0;
 
-        uint64_t primary_key() const { return id; }
-        account_name by_account_name() const { return account; }
+        uint64_t primary_key() const { return account; }
         string by_name() const { return name; }
-        EOSLIB_SERIALIZE(doctor, (id)(account)(name)(hospital)(speciality)(approved))
+        EOSLIB_SERIALIZE(doctor, (account)(name)(hospital)(speciality)(approved))
       };
 
-      eosio::multi_index<N(doctor), doctor,
-        indexed_by< N(account), const_mem_fun<doctor, account_name, &doctor::by_account_name > >
-      > doctors;
+      eosio::multi_index<N(doctor), doctor> doctors;
 
       //@abi table record i64
       struct record {
@@ -101,13 +99,22 @@ class medeos : public eosio::contract {
         account_name doctor;
         string       data;
         public_key   rid;
-        uint32_t     created_at;
+        uint64_t     created_at;
 
-        uint64_t primary_key() const { return id; }
+        uint64_t primary_key()const { return id; }
+        key256 by_rid()const { return get_key256_from_pubkey(rid); }
+
+        static key256 get_key256_from_pubkey(const public_key& pub) {
+          const uint64_t *p64 = reinterpret_cast<const uint64_t *>(&pub.data[0]+1);
+          return key256::make_from_word_sequence<uint64_t>(p64[0], p64[1], p64[2], p64[3]);
+        }
+
         EOSLIB_SERIALIZE(record, (id)(doctor)(data)(rid)(created_at))
       };
 
-      eosio::multi_index<N(record), record> records;
+      eosio::multi_index<N(record), record,
+        indexed_by<N(rid), const_mem_fun<record, key256, &record::by_rid>>
+      > records;
 };
 
 EOSIO_ABI( medeos, (regdoctor)(approvedoc)(addrecord)(debugclean) )
