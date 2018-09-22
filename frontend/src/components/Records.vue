@@ -60,8 +60,8 @@
                 ></v-checkbox>
               </td>
               <td>{{ props.item.date }}</td>
-              <td class="text-center">{{ props.item.doctorName }}</td>
-              <td class="text-center">{{ props.item.doctorType }}</td>
+              <td class="text-center">{{ props.item.name }}</td>
+              <td class="text-center">{{ props.item.speciality }}</td>
               <td class="text-center">{{ props.item.hospital }}</td>
             </tr>
           </template>
@@ -73,37 +73,37 @@
     </v-content>
 
     <div class="text-xs-center">
-    <v-dialog
-      v-model="dialog"
-      width="500"
-    >
-      <v-card>
-        <v-card-title
-          class="headline grey lighten-2"
-          primary-title
-        >
-          Privacy Policy
-        </v-card-title>
-
-        <v-card-text>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        </v-card-text>
-
-        <v-divider></v-divider>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            flat
-            @click="dialog = false"
+      <v-dialog
+        v-model="dialog"
+        width="500"
+      >
+        <v-card>
+          <v-card-title
+            class="headline grey lighten-2"
+            primary-title
           >
-            I accept
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </div>
+            Privacy Policy
+          </v-card-title>
+
+          <v-card-text>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="primary"
+              flat
+              @click="dialog = false"
+            >
+              I accept
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
   </v-app>
 </template>
 
@@ -125,8 +125,8 @@
           align: 'left',
           value: 'date'
         },
-        { text: 'Doctor', value: 'doctorName' },
-        { text: 'Type', value: 'doctorType' },
+        { text: 'Doctor', value: 'name' },
+        { text: 'Speciality', value: 'speciality' },
         { text: 'Hospital', value: 'hospital' },
       ],
       dialog: false,
@@ -153,8 +153,8 @@
         {
           value: false,
           date: '2018-05-01',
-          doctorName: 'Alexander',
-          doctorType: 'Cardiologist',
+          name: 'Alexander',
+          speciality: 'Cardiologist',
           hospital: 'St. Sophia Hospital, NY'
         }
       ]
