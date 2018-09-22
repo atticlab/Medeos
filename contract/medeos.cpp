@@ -15,19 +15,19 @@ class medeos : public eosio::contract {
        records(self, self) { }
 
       //@abi action
-      void regdoctor(account_name account, const string& name) {
+      void regdoctor(account_name account, const string& name, const string& hospital, const string& speciality) {
         require_auth(account);
         
         auto acct_idx = doctors.template get_index<N(account)>();
         eosio_assert( acct_idx.find(account) == acct_idx.end(), "account already registered as a doctor" );
 
-        auto name_idx = doctors.template get_index<N(name)>();
-        eosio_assert( name_idx.find(name) == name_idx.end(), "name in use" );
-
+        //TODO: validate name is not already been used
         doctors.emplace(account, [&](auto& d) {
           d.id       = doctors.available_primary_key();
           d.account  = account;
           d.name     = name;
+          d.hospital = hospital;
+          d.speciality = speciality;
           d.approved = 0;
         });
       }
@@ -44,7 +44,7 @@ class medeos : public eosio::contract {
       }
 
       //@abi action 
-      void addrecord(uint64_t docid, checksum256 hash) {
+      void addrecord(uint64_t docid, public_key rid, string data) {
 
         auto doc_itr = doctors.find(docid);
         eosio_assert( doc_itr != doctors.end() && doc_itr->approved != 0, "doctor not found!");
@@ -52,9 +52,11 @@ class medeos : public eosio::contract {
         require_auth(doc_itr->account);
 
         records.emplace(_self, [&](auto& r) {
-          r.id       = doctors.available_primary_key();
-          r.doctor   = doc_itr->account;
-          r.hash     = hash;
+          r.id         = doctors.available_primary_key();
+          r.doctor     = doc_itr->account;
+          r.data       = data;
+          r.rid        = rid;
+          r.created_at = time();
         });
       }
 
@@ -65,6 +67,11 @@ class medeos : public eosio::contract {
         while(itr != doctors.end()) {
           doctors.erase(itr++);
         }
+
+        auto ritr = records.begin();
+        while(ritr != records.end()) {
+          records.erase(ritr++);
+        }
       }
 
   protected:
@@ -74,27 +81,30 @@ class medeos : public eosio::contract {
         uint64_t     id;
         account_name account;
         string       name;
+        string       hospital;
+        string       speciality;
         uint64_t     approved = 0;
 
         uint64_t primary_key() const { return id; }
         account_name by_account_name() const { return account; }
         string by_name() const { return name; }
-        EOSLIB_SERIALIZE(doctor, (id)(account)(name)(approved))
+        EOSLIB_SERIALIZE(doctor, (id)(account)(name)(hospital)(speciality)(approved))
       };
 
       eosio::multi_index<N(doctor), doctor,
-        indexed_by< N(account), const_mem_fun<doctor, account_name, &doctor::by_account_name > >,
-        indexed_by< N(name), const_mem_fun<doctor, string, &doctor::by_name > >
+        indexed_by< N(account), const_mem_fun<doctor, account_name, &doctor::by_account_name > >
       > doctors;
 
       //@abi table record i64
       struct record {
         uint64_t     id;
         account_name doctor;
-        checksum256  hash;
+        string       data;
+        public_key   rid;
+        uint32_t     created_at;
 
         uint64_t primary_key() const { return id; }
-        EOSLIB_SERIALIZE(record, (id)(hash))
+        EOSLIB_SERIALIZE(record, (id)(doctor)(data)(rid)(created_at))
       };
 
       eosio::multi_index<N(record), record> records;
