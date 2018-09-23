@@ -60,11 +60,11 @@ patientsXpub = "xpub661MyMwAqRbcH2Z5RtM6ydu98YudxiUDTaBESx9VgXpURBCDdWGezitJ8orm
 
 theNextDerivationId = 1;
 
-derivationPath = "m/44'/196'/0'/0/"+theNextDerivationId;
+derivationPath = "m/"+theNextDerivationId;
 
-
+console.log("derivedPubKey:", derivationPath)
 masterPublicKey = eoscob.fromExtendedKey(patientsXpub);
-derivedPubKey = masterPublicKey.deriveChild(derivationPath);
+derivedPubKey = masterPublicKey.derivePath(derivationPath);
 console.log("derivedPubKey:", derivedPubKey.getPublicKey());
 
 
@@ -73,7 +73,7 @@ console.log("derivedPubKey:", derivedPubKey.getPublicKey());
 doctorsPrivateKey=ecc.PrivateKey.fromSeed('someone')
 doctorsPublicKey=doctorsPrivateKey.toPublic()
 encryptedMessage = ecc.Aes.encrypt(doctorsPrivateKey, derivedPubKey.getPublicKey(), aMedicalRecord)
-simple = JSON.stringify({ nonce: encryptedMessage.nonce, message: encryptedMessage.message.toString("base64"), checksum: encryptedMessage.checksum })
+simple = JSON.stringify({ nonce: encryptedMessage.nonce.toString(), message: encryptedMessage.message.toString("base64"), checksum: encryptedMessage.checksum })
 console.log("encryptedMessage:",simple)
 
 
@@ -123,14 +123,19 @@ for (var i = upperBound.length - 1; i >= 0; i--) {
 console.log("upperBound key:", upperBound)
 
 
-console.log("needLength:", "f459061974c976fe554dcbdb50617ee0cacaccdd7c3310d98cc0afbf9da904f0".length)
+// console.log("needLength:", "f459061974c976fe554dcbdb50617ee0cacaccdd7c3310d98cc0afbf9da904f0".length)
 
 
 
 
 
 masterPrivateKey = eoscob.fromMasterSeed('patients_top_secret_master_seed');
-derivedPrivKey = masterPrivateKey.deriveChild(derivationPath);
+derivedPrivKey = masterPrivateKey.derivePath(derivationPath);
+
+console.log("pubkey of derivedPrivKey:", derivedPrivKey.getPublicKey());
+// console.log("pub:",derivedPubKey);
+// console.log("priv:",derivedPrivKey);
+
 
 
 console.log("encryptedMessage message before:", encryptedMessage)
@@ -143,10 +148,11 @@ console.log("decrypted message before:", message)
 // , lower_bound: upperBound, upper_bound: rawKey
 eosDoc.getTableRows({json:true, scope: "medeos111111", code: "medeos111111", table: "record", limit:1000, key_type:"sha256", index_position:2/*, upper_bound: upperBound, lower_bound: rawKey*/}).then(
   res => { 
-    // console.log("res:",res);
+    console.log("res:",res);
     console.log("res.len:",res.rows.length);
     for (var i = 0; i < res.rows.length; i++) {
       console.log(res.rows[i])
+      try{
        doc = res.rows[i].doctor
        console.log("doc", doc)
        created_at = res.rows[i].created_at
@@ -156,12 +162,16 @@ eosDoc.getTableRows({json:true, scope: "medeos111111", code: "medeos111111", tab
        obj = JSON.parse(res.rows[i].data)
        console.log("obj", obj)
        
-encryptedMessage = { nonce: obj.nonce, message: Buffer.from(obj.message,"base64"), checksum: obj.checksum }
+encryptedMessage = { nonce:obj.nonce, message: Buffer.from(obj.message,"base64"), checksum: obj.checksum }
 console.log("encryptedMessage",encryptedMessage)
+
 
 message = ecc.Aes.decrypt(derivedPrivKey.getPrivateKey(), doctorsPublicKey,
   encryptedMessage.nonce, encryptedMessage.message, encryptedMessage.checksum);
+message = message.toString()
 console.log("decrypted message:", message)
+}
+catch(err) {console.log(err)}
        // console.log("row:",row)
       
     }
@@ -195,9 +205,9 @@ console.log("decrypted message:", message)
 
 // const derivationPath = "m/44'/196'/0'/0/0";
 
-// const derivedPubKey = readonlyMasterPublicKey.deriveChild(derivationPath);
+// const derivedPubKey = readonlyMasterPublicKey.derivePath(derivationPath);
 // console.log("derivedPubKey:", derivedPubKey.getPublicKey());
-// const derivedPrivKey = masterPrivateKey.deriveChild(derivationPath);
+// const derivedPrivKey = masterPrivateKey.derivePath(derivationPath);
 // console.log("pubkey of derivedPrivKey:", derivedPrivKey.getPublicKey());
 // // console.log("pub:",derivedPubKey);
 // // console.log("priv:",derivedPrivKey);
