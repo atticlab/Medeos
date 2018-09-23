@@ -3,22 +3,16 @@
     <navigation></navigation>
     <v-content>
       <v-container>
+
           <h1 style="position: relative" class="display-2">John Doe
-            <router-link to="/add">
-              <v-btn
-                v-show="!hidden"
-                color="pink"
-                fab
-                dark
-                small
-              >
-                <v-icon>add</v-icon>
-              </v-btn>
-            </router-link>
-              </h1>
-          <v-divider></v-divider>
-      </v-container>
-      <v-container>
+          <router-link to="/add">
+            <v-btn color="pink" fab dark small>
+              <v-icon>add</v-icon>
+            </v-btn>
+          </router-link>
+            </h1>
+        <v-divider class="mb-3"></v-divider>
+          <v-alert :value="success" type="success" class="mb-4">Patient's record added.</v-alert>
         <v-data-table
           v-model="selected"
           :headers="headers"
@@ -60,50 +54,57 @@
                 ></v-checkbox>
               </td>
               <td>{{ props.item.date }}</td>
-              <td class="text-center">{{ props.item.doctorName }}</td>
-              <td class="text-center">{{ props.item.doctorType }}</td>
+              <td class="text-center">{{ props.item.name }}</td>
+              <td class="text-center">{{ props.item.speciality }}</td>
               <td class="text-center">{{ props.item.hospital }}</td>
             </tr>
           </template>
         </v-data-table>
         <v-btn @click="dialog = true" v-if="selected.length > 0" fab dark large fixed right bottom color="purple">
-          <v-icon>fullscreen</v-icon>
+          <v-icon>compare_arrows</v-icon>
         </v-btn>
       </v-container>
     </v-content>
 
     <div class="text-xs-center">
-    <v-dialog
-      v-model="dialog"
-      width="500"
-    >
-      <v-card>
-        <v-card-title
-          class="headline grey lighten-2"
-          primary-title
-        >
-          Privacy Policy
-        </v-card-title>
-
-        <v-card-text>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        </v-card-text>
-
-        <v-divider></v-divider>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            flat
-            @click="dialog = false"
+      <v-dialog
+        v-model="dialog"
+        width="500"
+      >
+        <v-card>
+          <v-card-title
+            class="headline grey lighten-2"
+            primary-title
           >
-            I accept
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </div>
+            Data request from doctor
+          </v-card-title>
+
+          <v-card-text>
+            Doctor requests data acces to following records:
+            <ul>
+              <li>1</li>
+              <li>2</li>
+              <li>4</li>
+            </ul>
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <router-link to="/record">
+              <v-btn
+                color="primary"
+                flat
+                @click="dialog = false"
+              >
+                I accept
+              </v-btn>
+            </router-link>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
   </v-app>
 </template>
 
@@ -125,12 +126,13 @@
           align: 'left',
           value: 'date'
         },
-        { text: 'Doctor', value: 'doctorName' },
-        { text: 'Type', value: 'doctorType' },
+        { text: 'Doctor', value: 'name' },
+        { text: 'Speciality', value: 'speciality' },
         { text: 'Hospital', value: 'hospital' },
       ],
       dialog: false,
-      records: []
+      records: [],
+      success: false,
     }),
 
     methods: {
@@ -149,12 +151,13 @@
     },
 
     mounted : function() {
+      this.success = this.$route.query.success;
       this.records = [
         {
           value: false,
           date: '2018-05-01',
-          doctorName: 'Alexander',
-          doctorType: 'Cardiologist',
+          name: 'Alexander',
+          speciality: 'Cardiologist',
           hospital: 'St. Sophia Hospital, NY'
         }
       ]

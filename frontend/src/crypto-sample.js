@@ -296,4 +296,3 @@ getAllRecordsAndNextDerivationID(masterPublicKey)
 // //   encryptedMessage.nonce, encryptedMessage.message, encryptedMessage.checksum);
 
 // // console.log("result message:", message.toString());
-

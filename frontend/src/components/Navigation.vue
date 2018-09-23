@@ -50,7 +50,7 @@
         </template>
       </v-list>
     </v-navigation-drawer>
-    <v-toolbar color="amber" app absolute clipped-left>
+    <v-toolbar color="amber" app fixed clipped-left>
       <v-toolbar-side-icon @click.native="drawer = !drawer"></v-toolbar-side-icon>
       <span class="title ml-3 mr-5"><router-link to="/" class="reset"><span class="font-weight-light">MED</span>EOS</router-link></span>
 
