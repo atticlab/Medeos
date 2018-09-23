@@ -106,8 +106,22 @@ function getAllRecordsAndNextDerivationID(masterPublicKey){
   })
 }
 
+function decryptRecord(record, privateKey, doctorsPublicKey){
+  record.data = decryptARecord(record.data, privateKey, doctorsPublicKey)
+  return record
+}
 
-patientsXpub = "xpub661MyMwAqRbcH2Z5RtM6ydu98YudxiUDTaBESx9VgXpURBCDdWGezitJ8ormADG6CsJPs23fLmaeLp8RJgNvFo6YJkGhpXnHusCkRhGZdqr"
+function getPrivateForID(masterSeed, id){
+  masterPrivateKey = eoscob.fromMasterSeed(masterSeed);
+  derivationPath = getDerivationPathForID(theNextDerivationId); 
+  return masterPrivateKey.derivePath(derivationPath).getPrivateKey();
+}
+
+
+masterSeed = 'patients_top_secret_master_seed';
+
+
+patientsXpub = "xpub661MyMwAqRbcH2Z5RtM6ydu98YudxiUDTaBESx9VgXpURBCDdWGezitJ8ormADG6CsJPs23fLmaeLp8RJgNvFo6YJkGhpXnHusCkRhGZdqr"// const mpk = eoscob.fromMasterSeed(masterSeed).getPublicExtendedKey();
 masterPublicKey = eoscob.fromExtendedKey(patientsXpub);
 getAllRecordsAndNextDerivationID(masterPublicKey)
   .then(r => console.log("r",r))
