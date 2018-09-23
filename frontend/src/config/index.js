@@ -11,7 +11,9 @@ const Config = {
   doctorName: 'medeosdocto1',
   doctorPriv: 'somepriv',
   contract: 'medeos111111',
-  clientMasterPub: "xxx",
+  patientXpub: 'xpub661MyMwAqRbcH2Z5RtM6ydu98YudxiUDTaBESx9VgXpURBCDdWGezitJ8ormADG6CsJPs23fLmaeLp8RJgNvFo6YJkGhpXnHusCkRhGZdqr',
+  patientSeed: 'patients_top_secret_master_seed',
+  encryptionKey: "5J8wNvaWysAwsfTFcTa3Zcn8T3AKSDp2uG2nfQE7ewpdqjjW549"
 };
 
 

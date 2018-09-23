@@ -13,13 +13,18 @@
             </h1>
         <v-divider class="mb-3"></v-divider>
           <v-alert :value="success" type="success" class="mb-4">Patient's record added.</v-alert>
-        <v-data-table
+          <div v-if="loading">    <v-progress-circular
+      :width="3"
+      color="green"
+      indeterminate
+    ></v-progress-circular></div>
+        <v-data-table v-else
           v-model="selected"
           :headers="headers"
           :items="records"
           :pagination.sync="pagination"
           select-all
-          item-key="name"
+          item-key="rid"
           class="elevation-1"
         >
           <template slot="headers" slot-scope="props">
@@ -53,10 +58,10 @@
                   hide-details
                 ></v-checkbox>
               </td>
-              <td>{{ props.item.date }}</td>
-              <td class="text-center">{{ props.item.name }}</td>
-              <td class="text-center">{{ props.item.speciality }}</td>
-              <td class="text-center">{{ props.item.hospital }}</td>
+              <td>{{ moment(props.item.created_at / 1000).format('MMMM Do YYYY, h:mm:ss a') }}</td>
+              <td class="text-center">{{ props.item.doctor }}</td>
+              <td class="text-center">Cardiologist</td>
+              <td class="text-center">St. Sophia Hospital, NY</td>
             </tr>
           </template>
         </v-data-table>
@@ -82,9 +87,9 @@
           <v-card-text>
             Doctor requests data acces to following records:
             <ul>
-              <li>1</li>
-              <li>2</li>
-              <li>4</li>
+              <li v-for="item in selected">
+                Record from <i>{{ moment(item.created_at / 1000).format('MMMM Do YYYY, h:mm:ss a') }} {{ item.rid }}</i>
+              </li>
             </ul>
           </v-card-text>
 
@@ -92,15 +97,13 @@
 
           <v-card-actions>
             <v-spacer></v-spacer>
-            <router-link to="/record">
               <v-btn
                 color="primary"
                 flat
-                @click="dialog = false"
+                @click="showData"
               >
                 I accept
               </v-btn>
-            </router-link>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -110,6 +113,7 @@
 
 <script>
   import Navigation from './Navigation.vue'
+  import Moment from 'moment';
 
   export default {
     components: {
@@ -119,14 +123,16 @@
       pagination: {
         sortBy: 'date'
       },
+      moment: Moment,
+      loading: true,
       selected: [],
       headers: [
         {
           text: 'Date',
           align: 'left',
-          value: 'date'
+          value: 'created_at'
         },
-        { text: 'Doctor', value: 'name' },
+        { text: 'Doctor', value: 'doctor' },
         { text: 'Speciality', value: 'speciality' },
         { text: 'Hospital', value: 'hospital' },
       ],
@@ -147,20 +153,38 @@
           this.pagination.sortBy = column
           this.pagination.descending = false
         }
+      },
+      showData: function() {
+        var ids = [];
+        for (var i = 0; i < this.selected.length; i++) {
+          ids.push(this.selected[i].index)
+        }
+
+        this.$router.push({ path: 'record', query: { ids: ids }});
       }
     },
 
     mounted : function() {
       this.success = this.$route.query.success;
-      this.records = [
-        {
-          value: false,
-          date: '2018-05-01',
-          name: 'Alexander',
-          speciality: 'Cardiologist',
-          hospital: 'St. Sophia Hospital, NY'
-        }
-      ]
+
+      this.$eosio.getRecords()
+        .then(r => {
+          this.loading = false;
+          this.records = r.records
+        })
+        .catch(e => {
+          this.loading = false;
+          console.log("err", e)
+        })
+      //  = [
+      //   {
+      //     value: false,
+      //     date: '2018-05-01',
+      //     name: 'Alexander',
+      //     speciality: 'Cardiologist',
+      //     hospital: 'St. Sophia Hospital, NY'
+      //   }
+      // ]
     }
   }
 </script>
