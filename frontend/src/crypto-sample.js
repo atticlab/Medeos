@@ -1,20 +1,7 @@
-   // install yarn add @cobo/eos
-   // npm install eosjs
-   // npm install eosjs-ecc
-  
 
-   const ecc = require("eosjs-ecc");
-   Eos = require('eosjs')
-
-   const eoscob = require("@cobo/eos");
 
  /** Transactions are only valid on the selected chain. */
-  chain = {
-    main: 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906', // main network
-    jungle: '038f4b0fc8ff18a4f0842a8f0564611f6e96e8535901dd45e43ac8691a1c4dca', // jungle testnet
-    sys: 'cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f', // local developer\
-    kylin: '5fff1dae8dc8e2fc4d5b23b2c7665c97f9e9d8edf2b6485a86ba311c25639191'
-  }
+  
 
 //   config = {
 //   chainId: null, // 32 byte (64 char) hex string
@@ -26,15 +13,18 @@
 //   sign: true
 // }
 
-  eosDoc = Eos({
-    keyProvider: '5JidLwMkDbMh9iMXXq445SZkAAuDao9rj9twKvoDWqxQWJreaP6',// private key
-    httpEndpoint: 'https://api.kylin-testnet.eospacex.com',
-    chainId: chain.kylin,
-    authorization: 'medeosdocto1@active',
-  });
 
 
-eosDoc.contract('medeos111111').then(medeos111111 => medeos111111.regdoctor({"account":"medeosdocto1","name":"A good doctor", "speciality": "Family doctor", "hospital":"The Royal London Hospital"}).then(res => console.log("result", result))).catch(err=>console.log)
+
+eosDoc.contract(conf.contract)
+  .then(c => c.regdoctor({
+      "account": "medeosdocto1",
+      "name": "A good doctor",
+      "speciality": "Family doctor",
+      "hospital": "The Royal London Hospital"
+   })
+  .then(res => console.log("result", result)))
+  .catch(err=>console.log)
 
 doc_id = ???
 
@@ -42,7 +32,6 @@ doc_id = ???
 aMedicalRecord = "A patient was just born and he is in a perfect health. Congrats!"
 
 
-// eosDoc.contract('medeos111111').then(medeos111111 => medeos111111.addrecord({"docid":doc_id,"data":"A good doctor"}).then(res => console.log("result", result))).catch(err=>console.log)
 
 
 
@@ -78,3 +67,41 @@ message = ecc.Aes.decrypt(derivedPrivKey.getPrivateKey(), doctorsPublicKey,
 
 console.log("result message:", message.toString());
 
+
+////////////////////
+aMedicalRecord = "A patient was just born and he is in a perfect health. Congrats!"
+
+
+patientsXpub = "xpub661MyMwAqRbcH2Z5RtM6ydu98YudxiUDTaBESx9VgXpURBCDdWGezitJ8ormADG6CsJPs23fLmaeLp8RJgNvFo6YJkGhpXnHusCkRhGZdqr"
+
+theNextDerivationId = 1;
+
+derivationPath = "m/44'/196'/0'/0/"+theNextDerivationId;
+
+
+masterPublicKey = eoscob.fromExtendedKey(patientsXpub);
+derivedPubKey = masterPublicKey.deriveChild(derivationPath);
+console.log("derivedPubKey:", derivedPubKey.getPublicKey());
+
+
+
+
+doctorsPrivateKey=ecc.PrivateKey.fromSeed('someone')
+doctorsPublicKey=doctorsPrivateKey.toPublic()
+encryptedMessage = ecc.Aes.encrypt(doctorsPrivateKey, derivedPubKey.getPublicKey(), aMedicalRecord)
+simple = JSON.stringify({ nonce: encryptedMessage.nonce, message: encryptedMessage.message.toString("base64"), checksum: encryptedMessage.checksum })
+console.log("encryptedMessage:",simple)
+
+
+
+// message = ecc.Aes.decrypt(derivedPrivKey.getPrivateKey(), doctorsPublicKey,
+//   encryptedMessage.nonce, encryptedMessage.message, encryptedMessage.checksum);
+
+// console.log("result message:", message.toString());
+
+ 
+record = {"doc":"medeosdocto1","rid":derivedPubKey.getPublicKey(),"data": simple }
+
+
+
+eosDoc.contract('medeos111111').then(medeos111111 => medeos111111.addrecord(record).then(res => console.log("result", result))).catch(err=>console.log)
