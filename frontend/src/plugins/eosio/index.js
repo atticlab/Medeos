@@ -1,4 +1,4 @@
-// import ecc from 'eosjs-ecc';
+import ecc from 'eosjs-ecc';
 import eosjs from 'eosjs';
 // import eos from "@cobo/eos";
 import Config from '../../config'
@@ -17,18 +17,31 @@ const Eosio = {
                 return 1;
             },
             addRecord: function(data) {
-				return eosDoc.contract(Config.contract)
-					.then(c => c.addrecord({
-						"doc": Config.doctorName,
-						"docid": this.getNextId(), 
-						"data": data
-					}));
+                var msg = this.encrypt(data, Config.doctorPriv);
+
+                console.log(msg)
+
+				// return eosDoc.contract(Config.contract)
+					// .then(c => c.addrecord({
+                        // doc:Config.doctorName,
+                        // rid:derivedPubKey.getPublicKey(),
+                        // data: JSON.stringify(msg)
+                    // }));
             },
             getRecords: function(masterPubKey) {
 
-            }
+            },
+            encrypt: function(data, privateKey) {
+                /*var priv = ecc.PrivateKey.fromSeed(privateKey);
+                var pub  = priv.toPublic();
 
-            // encode
+                var encryptedMessage = ecc.Aes.encrypt(priv, derivedPubKey.getPublicKey(), JSON.stringify(data))
+                return {
+                    nonce: encryptedMessage.nonce.toString(),
+                    message: encryptedMessage.message.toString("base64"), 
+                    checksum: encryptedMessage.checksum
+                };*/
+            }
             // decode
         }
     }

@@ -9,6 +9,7 @@ const Config = {
   httpEndpoint: 'https://api.kylin-testnet.eospacex.com',
   authorization: 'medeosdocto1@active',
   doctorName: 'medeosdocto1',
+  doctorPriv: 'somepriv',
   contract: 'medeos111111',
   clientMasterPub: "xxx",
 };

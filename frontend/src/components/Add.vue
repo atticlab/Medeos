@@ -89,10 +89,6 @@
     }),
     methods: {
       submit () {
-        this.$router.push({ path: 'records', query: { success: true }});
-        return;
-
-
         if (this.$refs.form.validate()) {
           this.$eosio.addRecord({
             prediagnosis: this.prediagnosis,
@@ -102,12 +98,10 @@
             prescriptions: this.prescriptions,
           })
           .then(() => {
-            // TODO: ALERT OK
-            // TODO: REDIRECT TOT LIST
+            this.$router.push({ path: 'records', query: { success: true }});
           })
           .catch(err => {
-            // TODO: ALERT ERROR
-            // CONSOLE.LOG ERROR
+            console.log(err)
           })
         }
       },
