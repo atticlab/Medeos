@@ -34,13 +34,26 @@
     authorization: 'medeosdocto1@active',
   });
 
-console.log("keyProvider:", eosDoc.keyProvider)
+  eosMaster= Eos({
+    keyProvider: '5Jxzpc2aYRu2sWSUGZa57yK7s3Ba8fS9JgpmTRGkPniXmGtwffX',// private key
+    httpEndpoint: 'https://api.kylin-testnet.eospacex.com',
+    chainId: chain.kylin,
+    authorization: 'medeos111111@active',
+  });
+
+
 // eosDoc.contract('medeos111111').then(medeos111111 => medeos111111.regdoctor({"account":"medeosdocto1","name":"A good doctor", "speciality": "Family doctor", "hospital":"The Royal London Hospital"}).then(res => console.log("result", result))).catch(err=>console.log)
+
+// eosMaster.contract('medeos111111').then(medeos111111 => medeos111111.approvedoc({doc:"medeosdocto1"}).then(res => console.log("result", res))).catch(err=>console.log("some problem occured", err))
+
+
+console.log("keyProvider:", eosDoc.keyProvider)
 
 // doc_id = ???
 
 
-aMedicalRecord = "A patient was just born and he is in a perfect health. Congrats!"
+aMedicalRecord = {examination: "A patient was just born and he is in a perfect health. Congrats!"}
+aMedicalRecord = JSON.stringify(aMedicalRecord)
 
 
 patientsXpub = "xpub661MyMwAqRbcH2Z5RtM6ydu98YudxiUDTaBESx9VgXpURBCDdWGezitJ8ormADG6CsJPs23fLmaeLp8RJgNvFo6YJkGhpXnHusCkRhGZdqr"
@@ -71,11 +84,11 @@ console.log("encryptedMessage:",simple)
 // console.log("result message:", message.toString());
 
  
-record = {"doc":"medeosdocto1","rid":derivedPubKey.getPublicKey(),"data": simple }
+record = {doc:"medeosdocto1",rid:derivedPubKey.getPublicKey(),data: simple }
 
 
 
-// eosDoc.contract('medeos111111').then(medeos111111 => medeos111111.addrecord(record).then(res => console.log("result", result))).catch(err=>console.log)
+// eosDoc.contract('medeos111111').then(medeos111111 => medeos111111.addrecord(record).then(res => console.log("result", res))).catch(err=>console.log("some problem occured", err))
 
 
 
@@ -88,6 +101,7 @@ record = {"doc":"medeosdocto1","rid":derivedPubKey.getPublicKey(),"data": simple
 
 
 rawKey = derivedPubKey.getPublicKey();
+rawKey = "EOS6k6tWftQVNH6hJcJ1nyYdGuFgeNQrXGiNUCWQtxm8Nu8GYb4un"
 // console.log("original raw key:", rawKey)
 // console.log("truncated raw key:", rawKey.substr(3))
 
@@ -101,12 +115,74 @@ rawKey = ecc.PublicKey(rawKey).toHex();
 rawKey = rawKey.substr(2);
 console.log("raw key:", rawKey)
 console.log("raw key len:", rawKey.length)
+upperBound = Buffer.from(rawKey, "hex")
+for (var i = upperBound.length - 1; i >= 0; i--) {
+        if (upperBound[i]++ !== 255) break;
+    }
+  upperBound = upperBound.toString("hex")
+console.log("upperBound key:", upperBound)
 
 
 console.log("needLength:", "f459061974c976fe554dcbdb50617ee0cacaccdd7c3310d98cc0afbf9da904f0".length)
 
+
+
+
+
+masterPrivateKey = eoscob.fromMasterSeed('patients_top_secret_master_seed');
+derivedPrivKey = masterPrivateKey.deriveChild(derivationPath);
+
+
+console.log("encryptedMessage message before:", encryptedMessage)
+message = ecc.Aes.decrypt(derivedPrivKey.getPrivateKey(), doctorsPublicKey,
+  encryptedMessage.nonce, encryptedMessage.message, encryptedMessage.checksum);
+console.log("decrypted message before:", message)
+
+
 // rawKey = rawKey[3:]lower_bound: id, upper_bound: id+1
-eosDoc.getTableRows({json:true, scope: "medeos111111", code: "medeos111111", table: "record", limit:1, key_type:"sha256", index_position:2, upper_bound: rawKey}).then(res => { console.log("res:",res);let row = res.rows[0]; console.log("row:",row)}).catch(err=>console.log);
+// , lower_bound: upperBound, upper_bound: rawKey
+eosDoc.getTableRows({json:true, scope: "medeos111111", code: "medeos111111", table: "record", limit:1000, key_type:"sha256", index_position:2/*, upper_bound: upperBound, lower_bound: rawKey*/}).then(
+  res => { 
+    // console.log("res:",res);
+    console.log("res.len:",res.rows.length);
+    for (var i = 0; i < res.rows.length; i++) {
+      console.log(res.rows[i])
+       doc = res.rows[i].doctor
+       console.log("doc", doc)
+       created_at = res.rows[i].created_at
+       console.log("created_at", created_at)
+       rid = res.rows[i].rid
+       console.log("rid", rid)
+       obj = JSON.parse(res.rows[i].data)
+       console.log("obj", obj)
+       
+encryptedMessage = { nonce: obj.nonce, message: Buffer.from(obj.message,"base64"), checksum: obj.checksum }
+console.log("encryptedMessage",encryptedMessage)
+
+message = ecc.Aes.decrypt(derivedPrivKey.getPrivateKey(), doctorsPublicKey,
+  encryptedMessage.nonce, encryptedMessage.message, encryptedMessage.checksum);
+console.log("decrypted message:", message)
+       // console.log("row:",row)
+      
+    }
+    /*for (var i = 0; i < res.rows.length; i++) {
+      console.log("sdsdfsdfsdfsdfsd")
+      row = res.rows[i];
+       console.log("row:",row)
+       doc = row.doctor
+       created_at = row.created_at
+       rid = row.rid
+       obj = JSON.parse(row.data)
+encryptedMessage = { nonce: obj.nonce, message: Buffer.from(obj.message,"base64"), checksum: obj.checksum }
+
+message = ecc.Aes.decrypt(derivedPrivKey.getPrivateKey(), doctorsPublicKey,
+  encryptedMessage.nonce, encryptedMessage.message, encryptedMessage.checksum);
+console.log("decrypted message:", message)
+
+    }*/
+    
+    let row = res.rows[0]; console.log("row:",row)
+  }).catch(err=>console.log("err", err));
 
 // // exit(0)
 
